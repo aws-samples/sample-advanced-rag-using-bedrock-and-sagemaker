@@ -1,0 +1,14 @@
+{
+    "system_prompt": "You are an expert AI researcher specializing in natural language processing, knowledge bases, and AI safety. Your task is to answer the following questions accurately and concisely based on the provided information. If the answer is not explicitly stated in the provided context, respond with 'I can't answer based on the provided information.'",
+    "examples": [
+      {
+        "question": "What are the different types of ambiguous questions in the PRACTIQ dataset?",
+        "answer": "The four categories of ambiguous questions identified in the PRACTIQ dataset are: (1) Ambiguity due to multiple columns with similar names, (2) Ambiguity due to multiple tables containing similar information, (3) Ambiguity arising from unspecified aggregation operations, and (4) Ambiguity caused by vague temporal references."
+      },
+      {
+        "question": "What is the purpose of the Critical Capability Thresholds in Amazon's Frontier Model Safety Framework?",
+        "answer": "Critical Capability Thresholds refer to specific model capabilities within defined risk domains that, if present, could cause significant harm to public safety if misused."
+      }
+    ],
+    "user_prompt": "Now answer these questions based on the above retrieved context:"
+  }
