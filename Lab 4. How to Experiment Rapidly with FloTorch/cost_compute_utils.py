@@ -49,13 +49,16 @@ def calculate_bedrock_inference_cost(input_tokens,output_tokens, inference_model
 
     input_actual_cost = (input_price_per_million_tokens * float(input_tokens)) / MILLION
     output_actual_cost = (output_price_per_million_tokens * float(output_tokens)) / MILLION
-    return input_actual_cost + output_actual_cost
+    total_cost_for_question = input_actual_cost + output_actual_cost
+    cost_for_million_such_questions = total_cost_for_question * MILLION
+    return total_cost_for_question, cost_for_million_such_questions
 
 def calculate_cost_and_latency_metrics(inference_data, inference_model, aws_region):
     if isinstance(inference_data, list):
         total_cost = Decimal('0.0000')
         total_latency = 0.0
         item_count = 0
+        million_questions_cost = 0
     
         for item_data in inference_data:
             if not isinstance(item_data, dict) or "metadata" not in item_data:
@@ -64,7 +67,7 @@ def calculate_cost_and_latency_metrics(inference_data, inference_model, aws_regi
             metrics = extract_metadata_metrics(item_data["metadata"])
             
             # Calculate cost for this item
-            item_cost = calculate_bedrock_inference_cost(
+            item_cost, million_such_items_cost = calculate_bedrock_inference_cost(
                 metrics.input_tokens,
                 metrics.output_tokens,
                 inference_model,
@@ -74,6 +77,7 @@ def calculate_cost_and_latency_metrics(inference_data, inference_model, aws_regi
             total_cost += Decimal(str(item_cost))
             total_latency += metrics.latency
             item_count += 1
+            million_questions_cost += million_such_items_cost
     
         if item_count > 0:
             return {
@@ -81,7 +85,8 @@ def calculate_cost_and_latency_metrics(inference_data, inference_model, aws_regi
                 'average_inference_cost': float(total_cost / item_count),
                 'latency': total_latency,
                 'average_latency': total_latency / item_count,
-                'processed_items': item_count
+                'processed_items': item_count,
+                'average_million_questions_cost': float(million_questions_cost / item_count)
             }
         else:
             return {
@@ -89,7 +94,8 @@ def calculate_cost_and_latency_metrics(inference_data, inference_model, aws_regi
                 'average_cost': float(total_cost / item_count),
                 'latency': total_latency,
                 'average_latency': total_latency / item_count,
-                'processed_items': item_count
+                'processed_items': item_count,
+                'million_questions_cost': float(million_questions_cost / MILLION)
             }
 
 
