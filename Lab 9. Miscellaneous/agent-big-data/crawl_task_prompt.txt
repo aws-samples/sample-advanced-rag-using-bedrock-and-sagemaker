@@ -1,0 +1,31 @@
+I have files in an S3 folder and need you to create a Glue Crawler to crawl them and create/update a Glue Catalog. Use the use_aws tool to complete this task.
+
+Configuration details: {config_dict}. Strictly use the specified AWS region specified.
+
+IMPORTANT: 
+2. Use the files under {s3_folder_name}.
+
+Please perform these tasks using the use_aws tool:
+
+1. **Check if database exists**: 
+-- If the database already exits and it points to the folder {s3_folder_name}, delete all tables in that database.
+-- If the database does not exist, create it. The database name must include {s3_bucket_name}
+
+2. **Always create a glue crawler**:
+   - Do not use an existing one.
+   - Specify crawler name, role, database name, s3 target path and other configuration details.
+
+3. **Run the crawler**:
+
+4. **Monitor crawler status**:
+   - Use the sleep tool between status checks (minimum 15 seconds)
+   - NEVER give up on job monitoring - continue checking until State is "READY" (not "RUNNING")
+   - Always inform the user about wait times and current status
+
+5. **Verify results**:
+   - Get the database name & list of tables.
+
+6. **RESPONSE STRUCTURE**:
+    Return the following information strictly in json dictionary format:
+    - catalog_db_name (str) - the name of the glue catalog database
+    - catalog_table_names (list) - the list of table names
