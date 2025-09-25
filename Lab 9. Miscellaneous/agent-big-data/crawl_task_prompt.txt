@@ -1,31 +1,35 @@
 I have files in an S3 folder and need you to create a Glue Crawler to crawl them and create/update a Glue Catalog. Use the use_aws tool to complete this task.
 
-Configuration details: {config_dict}. Strictly use the specified AWS region specified.
+Strictly use the specified AWS region where CFN stack {stack_name} is deployed.
 
 IMPORTANT: 
-2. Use the files under {s3_folder_name}.
+2. Use the files under data/ prefix.
 
 Please perform these tasks using the use_aws tool:
 
-1. **Check if database exists**: 
--- If the database already exits and it points to the folder {s3_folder_name}, delete all tables in that database.
--- If the database does not exist, create it. The database name must include {s3_bucket_name}
+1. **Find location of the data**
+-- Check Outputs of CFN stack {stack_name} to find S3 bucket and the IAM role.
 
-2. **Always create a glue crawler**:
+2. **Check if database exists**: 
+-- If the database already exits and it points to the bucket, delete all tables in that database.
+-- If the database does not exist, create it. The database name must include {stack_name}
+
+3. **Always create a glue crawler**:
    - Do not use an existing one.
    - Specify crawler name, role, database name, s3 target path and other configuration details.
+   - Use the glue crawler to crawl the data and create/update the glue catalog
 
-3. **Run the crawler**:
+4. **Run the crawler**:
 
-4. **Monitor crawler status**:
+5. **Monitor crawler status**:
    - Use the sleep tool between status checks (minimum 15 seconds)
    - NEVER give up on job monitoring - continue checking until State is "READY" (not "RUNNING")
    - Always inform the user about wait times and current status
 
-5. **Verify results**:
+6. **Verify results**:
    - Get the database name & list of tables.
 
-6. **RESPONSE STRUCTURE**:
+7. **RESPONSE STRUCTURE**:
     Return the following information strictly in json dictionary format:
     - catalog_db_name (str) - the name of the glue catalog database
     - catalog_table_names (list) - the list of table names

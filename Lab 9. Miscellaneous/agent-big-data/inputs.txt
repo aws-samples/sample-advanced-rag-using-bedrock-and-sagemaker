@@ -1,5 +1,0 @@
-s3 bucket name - chreka-mkhnrsmo
-s3 folder name where data files are stored - s3://chreka-mkhnrsmo/nyc_data_source/
-aws region - us-west-2
-aws role name - chreka-mkhnrsmo-glue-crawler-role
-athena results folder - s3://chreka-mkhnrsmo/athena_results/

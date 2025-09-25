@@ -72,45 +72,6 @@ def print_tokens_costs2(agent_response, aws_region = "us-west-2", model_id = "us
         """)
         return response
 
-def read_config_data() :
-    # We could have stored the info in a json file and read it into a dictionary.
-    # But let's show how to store configuration info in natural language and extract required information from it to a dictionary using an agent.
-
-    class ConfigurationData(BaseModel):
-        """configuration info for S3, region, role, folders"""
-        s3_bucket_name: str = Field(description="The S3 bucket name")
-        s3_folder_name: str = Field(description="The S3 folder path where data files are stored")
-        aws_region: str = Field(description="AWS region name")
-        aws_role_name: str = Field(description="AWS role name")        
-        s3_bucket_for_athena_output: str = Field(description="The S3 bucket name for athena output")
-        kb_id: Optional[str] = Field(default=None, description="The Bedrock knowledge base id")
-
-    # Initialize Claude 3.7 Sonnet model via Bedrock
-    model = BedrockModel(model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0", temperature=0.1)  # Low temperature for consistent structured output
-
-    # Create the Agent.
-    config_agent = Agent(model=model)
-
-    #read the contents of the file
-    input_file_name = "inputs.txt"
-    # read the file content using with
-    with open(input_file_name, 'r') as f:
-        input_file_contents = f.read()
-
-    #Pass the file content to the agent and ask the agent to extract the structured info.
-    config_data = config_agent.structured_output(
-        ConfigurationData, 
-        f"Extract the information strictly in structured format from {input_file_contents}"
-    )
-    # The above pattern is very popular when you need th agent to return data in a structured format.
-    # Many customers use this while extracting specific entities from resumes, medical, legal, insurance, or financial documents.
-
-    print(config_data)
-    # config_data now has the info that we need.
-
-    #covert this into a dictionary
-    config_dict = config_data.model_dump()
-    return config_dict
 
 def load_system_prompt_from_file(file_path: str, **variables) -> str:
     """

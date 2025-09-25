@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Big Data Agent Infrastructure - Creates S3 bucket and IAM role'
+
+Parameters:
+  Suffix:
+    Type: String
+    Description: 'Suffix for resource naming'
+    MinLength: 1
+    MaxLength: 20
+    AllowedPattern: '^[a-zA-Z0-9-]+$'
+    ConstraintDescription: 'Suffix must contain only alphanumeric characters and hyphens'
+
+Resources:
+  # S3 Bucket
+  BigDataAgentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::AccountId}-${AWS::Region}-big-data-agent-${Suffix}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      Tags:
+        - Key: Purpose
+          Value: BigDataAgent
+        - Key: Environment
+          Value: !Ref Suffix
+
+  # IAM Role
+  BigDataAgentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'big-data-agent-role-${Suffix}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - lambda.amazonaws.com
+                - glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: BigDataAgentS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub '${BigDataAgentBucket.Arn}/*'
+                  - !GetAtt BigDataAgentBucket.Arn
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketLocation
+                Resource: '*'
+        - PolicyName: BigDataAgentBedrockAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ListFoundationModels
+                  - bedrock:GetFoundationModel
+                Resource: '*'
+        - PolicyName: BigDataAgentGlueAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:*
+                Resource: '*'
+        - PolicyName: BigDataAgentAthenaAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - athena:*
+                Resource: '*'
+        - PolicyName: BigDataAgentCloudWatchLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: '*'
+      Tags:
+        - Key: Purpose
+          Value: BigDataAgent
+        - Key: Environment
+          Value: !Ref Suffix
+
+  # Instance Profile for EC2 instances
+  BigDataAgentInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub 'big-data-agent-instance-profile-${Suffix}'
+      Roles:
+        - !Ref BigDataAgentRole
+
+Outputs:
+  BucketName:
+    Description: 'Name of the created S3 bucket'
+    Value: !Ref BigDataAgentBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+
+  BucketArn:
+    Description: 'ARN of the created S3 bucket'
+    Value: !GetAtt BigDataAgentBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketArn'
+
+  RoleName:
+    Description: 'Name of the created IAM role'
+    Value: !Ref BigDataAgentRole
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleName'
+
+  RoleArn:
+    Description: 'ARN of the created IAM role'
+    Value: !GetAtt BigDataAgentRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleArn'
+
+  InstanceProfileArn:
+    Description: 'ARN of the instance profile'
+    Value: !GetAtt BigDataAgentInstanceProfile.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceProfileArn'
+
