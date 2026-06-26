@@ -464,7 +464,7 @@ def download_and_prepare_csv_data(bucket_name, region_name="us-west-2"):
     csv_file_path = os.path.join(local_dir, "video_games.csv")
     
     # Download the CSV file
-    response = requests.get(csv_url, verify=False)  # `verify=False` ignores SSL certificate issues
+    response = requests.get(csv_url)  # `verify=False` ignores SSL certificate issues
     if response.status_code == 200:
         with open(csv_file_path, 'wb') as file:
             file.write(response.content)
